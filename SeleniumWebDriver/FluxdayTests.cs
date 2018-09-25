@@ -69,6 +69,54 @@
 
         [TestCategory("FluxdayTests")]
         [TestMethod]
+        public void Test003ViewDetailsAboutACompletedTask()
+        {
+            Driver.Navigate().GoToUrl("https://app.fluxday.io/tasks#pane2");
+            IWebElement completedTasks = Driver.FindElement(By.XPath("//*[@id=\"pane2\"]/div[1]/dl/dd[2]/a"));
+            completedTasks.Click();
+            Thread.Sleep(1000);
+
+            IWebElement task = Driver.FindElement(By.XPath("//*[@id=\"paginator\"]/a[1]/div/div[1]"));
+            task.Click();
+            Thread.Sleep(1000);
+
+            IWebElement taskTitle = Driver.FindElement(By.XPath("//*[@id=\"pane3\"]/div[2]/div/div[1]/div[2]"));
+            var actualResult = taskTitle.Text;
+            Assert.IsTrue(actualResult.Contains("Announcement"));
+        }
+
+        [TestCategory("FluxdayTests")]
+        [TestMethod]
+        public void Test004AddNewOKR()
+        {
+            Driver.Navigate().GoToUrl("https://app.fluxday.io/okrs#pane2");
+            IWebElement addNewOKRButton = Driver.FindElement(By.XPath("//*[@id=\"pane2\"]/div[2]/a[1]"));
+            addNewOKRButton.Click();
+
+            IWebElement nameTextBox = Driver.FindElement(By.Id("//*[@id=\"okr_name\"]"));
+            nameTextBox.Clear();
+            nameTextBox.SendKeys("Test OKR");
+
+            IWebElement objectivesTextBox = Driver.FindElement(By.Id("//*[@id=\"okr_objectives_attributes_0_name\"]"));
+            objectivesTextBox.Clear();
+            objectivesTextBox.SendKeys("Test objectives");
+
+            IWebElement keyResultsTextBox = Driver.FindElement(By.Id("//*[@id=\"okr_objectives_attributes_0_key_results_attributes_0_name\"]"));
+            keyResultsTextBox.Clear();
+            keyResultsTextBox.SendKeys("Test key results");
+
+            IWebElement saveButton = Driver.FindElement(By.XPath("//*[@id=\"new_okr\"]/div[3]/div[2]/input"));
+            saveButton.Click();
+            Thread.Sleep(500);
+
+            IWebElement newOKRTitle = Driver.FindElement(By.XPath("//*[@id=\"pane2\"]/div[2]/a[4]/div/div[1]"));
+            var actualResult = newOKRTitle.Text;
+            Assert.IsTrue(actualResult.Contains("TestOKR"));
+
+        }
+
+        [TestCategory("FluxdayTests")]
+        [TestMethod]
         public void Test005SearchByAKeyWord()
         {
             string keyword = "team";
@@ -80,13 +128,6 @@
             var actualResult = resultTitle.Text;
             var expectedResult = "Results for team";
             Assert.AreEqual(expectedResult, actualResult);
-        }
-
-        [TestCategory("FluxdayTests")]
-        [TestMethod]
-        public void Test003ViewInformationAboutASpecificTeam()
-        {
-
         }
 
         public void Login(string email, string password)
