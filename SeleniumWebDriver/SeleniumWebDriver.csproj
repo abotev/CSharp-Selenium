@@ -61,6 +61,9 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
+    <Compile Include="Core\BaseTest.cs" />
+    <Compile Include="Core\BrowserTypes.cs" />
+    <Compile Include="Core\Driver.cs" />
     <Compile Include="Data\Models\User.cs" />
     <Compile Include="Tests\FluxdayTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

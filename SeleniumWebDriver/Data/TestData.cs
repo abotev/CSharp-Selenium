@@ -1,7 +1,7 @@
-﻿using SeleniumWebDriver.Data.Models;
-
-namespace SeleniumWebDriver.Data
+﻿namespace SeleniumWebDriver.Data
 {
+    using SeleniumWebDriver.Data.Models;
+
     public static class TestData
     {
         public static User Employee2
