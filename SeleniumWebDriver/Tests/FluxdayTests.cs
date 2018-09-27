@@ -1,16 +1,18 @@
-﻿namespace SeleniumWebDriver
+﻿namespace SeleniumWebDriver.Tests
 {
     using System.Threading;
     using Microsoft.VisualStudio.TestTools.UnitTesting;
     using OpenQA.Selenium;
     using OpenQA.Selenium.Chrome;
+    using SeleniumWebDriver.Data;
+    using SeleniumWebDriver.Data.Models;
 
     [TestClass]
     public class FluxdayTests
     {
-        public TestData data = new TestData();
-
         public static IWebDriver Driver { get; set; }
+
+        User employeeUser = TestData.Employee2;
 
         [TestInitialize]
         public void TestSetup()
@@ -18,7 +20,7 @@
             Driver = new ChromeDriver();
             Driver.Manage().Window.Maximize();
             Driver.Navigate().GoToUrl("https://app.fluxday.io/users/sign_in");
-            Login(data.Email, data.Password);
+            Login(employeeUser.Email, employeeUser.Password);
         }
 
         [TestCleanup]
@@ -31,16 +33,19 @@
         [TestMethod]
         public void Test001LogInAsAnEmployee2()
         {
+
             IWebElement username = Driver.FindElement(By.CssSelector("body > div.row.ep-tracker > div.large-2.columns.pane1.show-for-large-up > ul.user-links.side-nav.sidebar-links > li:nth-child(1) > a"));
             var actualResult = username.Text;
-            Assert.IsTrue(actualResult.Contains("Employee 2"));
+            Assert.IsTrue(actualResult.Contains(employeeUser.Name));
         }
 
         [TestCategory("FluxdayTests")]
         [TestMethod]
         public void Test002ChangeAccountPassword()
         {
-            data.Password = "password123";
+            string currentPassword = employeeUser.Password;
+            string newPassword = "password123";
+            employeeUser.Password = newPassword;
             Driver.Navigate().GoToUrl("https://app.fluxday.io/users/FT4#");
             IWebElement dropDownListBox = Driver.FindElement(By.XPath("//*[@id=\"pane3\"]/div/div[1]/div[2]/a"));
             dropDownListBox.Click();
@@ -50,21 +55,22 @@
 
             IWebElement passwordTextBox = Driver.FindElement(By.Id("user_password"));
             passwordTextBox.Clear();
-            passwordTextBox.SendKeys(data.Password);
+            passwordTextBox.SendKeys(employeeUser.Password);
 
             IWebElement confirmPasswordTextBox = Driver.FindElement(By.Id("user_password_confirmation"));
             confirmPasswordTextBox.Clear();
-            confirmPasswordTextBox.SendKeys(data.Password);
+            confirmPasswordTextBox.SendKeys(employeeUser.Password);
 
             IWebElement saveButton = Driver.FindElement(By.XPath("//*[@id=\"edit_user_33\"]/div[3]/div[2]/input"));
             saveButton.Click();
+            Thread.Sleep(1000);
 
-            Login(data.Email, data.Password);
+            Login(employeeUser.Email, employeeUser.Password);
 
             IWebElement username = Driver.FindElement(By.CssSelector("body > div.row.ep-tracker > div.large-2.columns.pane1.show-for-large-up > ul.user-links.side-nav.sidebar-links > li:nth-child(1) > a"));
             var actualResult = username.Text;
-            Assert.IsTrue(actualResult.Contains("Employee 2"));
-            ResetPasswordToDefault();
+            Assert.IsTrue(actualResult.Contains(employeeUser.Name));
+            ResetPasswordToDefault(currentPassword);
         }
 
         [TestCategory("FluxdayTests")]
@@ -87,32 +93,29 @@
 
         [TestCategory("FluxdayTests")]
         [TestMethod]
-        public void Test004AddNewOKR()
+        public void Test004ChangeNickname()
         {
-            Driver.Navigate().GoToUrl("https://app.fluxday.io/okrs#pane2");
-            IWebElement addNewOKRButton = Driver.FindElement(By.XPath("//*[@id=\"pane2\"]/div[2]/a[1]"));
-            addNewOKRButton.Click();
+            Driver.Navigate().GoToUrl("https://app.fluxday.io/users/FT4#");
 
-            IWebElement nameTextBox = Driver.FindElement(By.Id("//*[@id=\"okr_name\"]"));
-            nameTextBox.Clear();
-            nameTextBox.SendKeys("Test OKR");
+            IWebElement dropDownListIcon = Driver.FindElement(By.XPath("//*[@id=\"pane3\"]/div/div[1]/div[2]/a"));
+            dropDownListIcon.Click();
 
-            IWebElement objectivesTextBox = Driver.FindElement(By.Id("//*[@id=\"okr_objectives_attributes_0_name\"]"));
-            objectivesTextBox.Clear();
-            objectivesTextBox.SendKeys("Test objectives");
+            IWebElement editOption = Driver.FindElement(By.XPath("//*[@id=\"drop1\"]/li[1]/a"));
+            editOption.Click();
+            Thread.Sleep(1000);
 
-            IWebElement keyResultsTextBox = Driver.FindElement(By.Id("//*[@id=\"okr_objectives_attributes_0_key_results_attributes_0_name\"]"));
-            keyResultsTextBox.Clear();
-            keyResultsTextBox.SendKeys("Test key results");
+            string newNickname = "Employee";
+            IWebElement nicknameTextBox = Driver.FindElement(By.Id("user_nickname"));
+            nicknameTextBox.Clear();
+            nicknameTextBox.SendKeys(newNickname);
 
-            IWebElement saveButton = Driver.FindElement(By.XPath("//*[@id=\"new_okr\"]/div[3]/div[2]/input"));
+            IWebElement saveButton = Driver.FindElement(By.XPath("//*[@id=\"edit_user_33\"]/div[3]/div[2]/input"));
             saveButton.Click();
             Thread.Sleep(500);
 
-            IWebElement newOKRTitle = Driver.FindElement(By.XPath("//*[@id=\"pane2\"]/div[2]/a[4]/div/div[1]"));
-            var actualResult = newOKRTitle.Text;
-            Assert.IsTrue(actualResult.Contains("TestOKR"));
-
+            IWebElement nickname = Driver.FindElement(By.XPath("//*[@id=\"pane3\"]/div/div[1]/div[4]/div/div"));
+            var actualResult = nickname.Text.Substring(1, nickname.Text.Length - 2);
+            Assert.IsTrue(actualResult.Contains(newNickname));
         }
 
         [TestCategory("FluxdayTests")]
@@ -124,6 +127,8 @@
             searchTextBox.Clear();
             searchTextBox.SendKeys(keyword);
             searchTextBox.Submit();
+
+            Thread.Sleep(1000);
             IWebElement resultTitle = Driver.FindElement(By.XPath("//*[@id=\"pane2\"]/div/div[1]/div"));
             var actualResult = resultTitle.Text;
             var expectedResult = "Results for team";
@@ -142,23 +147,24 @@
 
             IWebElement loginButton = Driver.FindElement(By.XPath("//*[@id=\"new_user\"]/div[2]/div[3]/button"));
             loginButton.Click();
-            Thread.Sleep(500);
+            Thread.Sleep(1000);
         }
 
-        protected void ResetPasswordToDefault()
+        protected void ResetPasswordToDefault(string defaultPassword)
         {
             Driver.Navigate().GoToUrl("https://app.fluxday.io/users/change_password#pane3");
             Thread.Sleep(1000);
             IWebElement passwordTextBox = Driver.FindElement(By.Id("user_password"));
             passwordTextBox.Clear();
-            passwordTextBox.SendKeys(data.DefaultPassword);
+            passwordTextBox.SendKeys(defaultPassword);
 
             IWebElement confirmPasswordTextBox = Driver.FindElement(By.Id("user_password_confirmation"));
             confirmPasswordTextBox.Clear();
-            confirmPasswordTextBox.SendKeys(data.DefaultPassword);
+            confirmPasswordTextBox.SendKeys(defaultPassword);
 
             IWebElement saveButton = Driver.FindElement(By.XPath("//*[@id=\"edit_user_33\"]/div[3]/div[2]/input"));
             saveButton.Click();
+            Thread.Sleep(1000);
         }
     }
 }
